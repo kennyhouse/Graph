@@ -3,6 +3,7 @@ import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
@@ -39,7 +40,7 @@ class GraphException extends RuntimeException
 }
 
 // Represents an edge in the graph.
-class Edge
+class Edge implements Comparable
 {
     public Vertex     dest;   // Second vertex in Edge
     public double     cost;   // Edge cost
@@ -49,6 +50,19 @@ class Edge
         dest = d;
         cost = c;
     }
+
+	@Override
+	public int compareTo(Object o) {
+		// TODO Auto-generated method stub
+		double result = this.cost - ((Edge)o).cost;
+		
+		if(result < 0)
+			return -1;
+		else if(result > 0)
+			return 1;
+		else
+			return 0;
+	}
 }
 
 // Represents an entry in the priority queue for Dijkstra's algorithm.
@@ -87,6 +101,14 @@ class Vertex
       { dist = Graph.INFINITY; prev = null; pos = null; scratch = 0; }    
       
     public PairingHeap.Position<Path> pos;  // Used for dijkstra2 (Chapter 23)
+    
+    //---------------implements equals---------------------
+    
+    public boolean equals(Object o){
+    	return this.name.equals(((Vertex)o).name);
+    }
+    
+    //-------------------end-------------------------------
 }
 
 // Graph class: evaluate shortest paths.
@@ -296,6 +318,71 @@ public class Graph
             }
         }
     }
+    
+    /**
+     * Prim algorithm.
+     */
+    public void prim(String startName){
+    	Queue<Vertex> q = new LinkedList<Vertex>();
+    	LinkedList<Vertex> explored = new LinkedList<Vertex>();
+    	LinkedList<Vertex> tree = new LinkedList<Vertex>();
+    	
+    	PriorityQueue<Edge> children = new PriorityQueue<Edge>();
+    	
+    	
+    	Vertex start = vertexMap.get(startName);
+    	
+    	if( start == null )
+            throw new NoSuchElementException( "Start vertex not found" );
+    	/*
+    	for(Edge e : start.adj){
+    		System.out.println(e.dest.name + " " + e.cost);
+    	}
+    	*/
+    	
+    	q.add(start);
+    	
+    	while(!q.isEmpty()){
+    		Vertex popV = q.poll();
+    		explored.add(popV);
+    		
+    		for(Edge e : popV.adj){
+    			if(!explored.contains(e.dest))
+    				q.add(e.dest);
+    		}
+    	}
+    	
+ 
+    	Iterator it = explored.iterator();
+    	while(it.hasNext()){
+    		System.out.println(((Vertex)it.next()).name);
+    	}
+    	
+    	Vertex s = explored.getFirst();
+    	tree.add(s);
+    	
+    	while(!explored.isEmpty()){
+    		
+    		
+    		
+    	}
+    	Vertex minCost = getMinCostNeighbor(s);
+    	
+    	if(!tree.contains(minCost)){
+    		tree.add(minCost);
+    	}
+    	
+    }
+    
+    public Vertex getMinCostNeighbor(Vertex v){
+    	PriorityQueue<Edge> neighborEdges = new PriorityQueue<Edge>();
+    	
+    	for(Edge e : v.adj){
+    		neighborEdges.add(e);
+    	}
+    	
+    	return neighborEdges.remove().dest;
+    }
 
     /**
      * Single-source negative-weighted shortest-path algorithm.
@@ -405,24 +492,39 @@ public class Graph
             System.out.print( "Enter destination node:" );
             if( ( destName = in.readLine( ) ) == null )
                 return false;
-            System.out.print( " Enter algorithm (u, d, n, a ): " );   
+            System.out.print( " Enter algorithm (u, d, n, a, p ): " );   
             if( ( alg = in.readLine( ) ) == null )
                 return false;
             
-            if( alg.equals( "u" ) )
+            if( alg.equals( "u" ) ){
                 g.unweighted( startName );
+                
+                g.printPath( destName );
+            }
             else if( alg.equals( "d" ) )    
             {
                 g.dijkstra( startName );
                 g.printPath( destName );
                 g.dijkstra2( startName );
+                
+                g.printPath( destName );
             }
-            else if( alg.equals( "n" ) )
+            else if( alg.equals( "n" ) ){
                 g.negative( startName );
-            else if( alg.equals( "a" ) )
+                
+                g.printPath( destName );
+            }
+            else if( alg.equals( "a" ) ){
                 g.acyclic( startName );
-                    
-            g.printPath( destName );
+                
+                g.printPath( destName );
+            }
+            //----below is for prim's algorithm---------
+            else if(alg.endsWith("p"))
+            	g.prim(startName);
+            //--------------end------------------------- 
+            
+            //g.printPath( destName );
         }
         catch( IOException e )
           { System.err.println( e ); }
