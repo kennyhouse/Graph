@@ -65,6 +65,45 @@ class Edge implements Comparable
 	}
 }
 
+//Define a ref edge
+class refEdge implements Comparable<refEdge>{
+	
+	private Vertex s;
+	private Vertex e;
+	private double dis;
+	
+	public refEdge(Vertex start, Vertex end, double cost){
+		s = start;
+		e = end;
+		dis = cost;
+	}
+	
+	public Vertex getStart(){
+		return s;
+	}
+	
+	public Vertex getEnd(){
+		return e;
+	}
+	
+	public double getCost(){
+		return dis;
+	}
+
+	@Override
+	public int compareTo(refEdge o) {
+		// TODO Auto-generated method stub
+		if((this.dis - o.dis) < 0)
+			return -1;
+		else if((this.dis - o.dis) > 0)
+			return 1;
+		else {
+			return 0;
+		}
+	}
+	
+}
+
 // Represents an entry in the priority queue for Dijkstra's algorithm.
 class Path implements Comparable<Path>
 {
@@ -352,11 +391,42 @@ public class Graph
     		}
     	}
     	
+    	LinkedList<Vertex> exploredStart = new LinkedList<Vertex>();
+    	LinkedList<Vertex> exploredDest = new LinkedList<Vertex>();
+    	PriorityQueue<refEdge> refEdgeContainer = new PriorityQueue<refEdge>();
  
     	Iterator it = explored.iterator();
     	while(it.hasNext()){
-    		System.out.println(((Vertex)it.next()).name);
+    		Vertex node = (Vertex)it.next();
+    		
+    		System.out.println(node.name);
+    		
+    		for(Edge e: node.adj){
+    			if((!exploredStart.contains(node) && !exploredDest.contains(e.dest)) ||
+    					(!exploredStart.contains(e.dest) && !exploredDest.contains(node))){
+    				refEdge refedge = new refEdge(node, e.dest, e.cost);
+    				refEdgeContainer.add(refedge);
+    				exploredStart.add(node);
+    				exploredDest.add(e.dest);
+    			}
+    			
+    		}
+    		
+    		
     	}
+    	
+    	System.out.println("There are edges:         ");
+    	Iterator<refEdge> refEdgeIterator = refEdgeContainer.iterator();
+    	
+    	while(refEdgeIterator.hasNext()){
+    		refEdge ref = (refEdge)refEdgeIterator.next();
+    		System.out.println(ref.getStart().name + "-" + ref.getEnd().name + ":" + ref.getCost());
+    	}
+    	
+    	
+    	//LinkedList<Vertex> exploredV = new LinkedList<Vertex>();
+    	
+    	
     	
     	Vertex s = explored.getFirst();
     	tree.add(s);
