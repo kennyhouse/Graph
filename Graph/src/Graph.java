@@ -2,16 +2,22 @@ import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Stack;
 import java.util.StringTokenizer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 import java.util.Queue;
+
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
+
+import sun.awt.windows.ThemeReader;
 
 
 
@@ -171,6 +177,14 @@ public class Graph
 {
     public static final double INFINITY = Double.MAX_VALUE;
     private Map<String,Vertex> vertexMap = new HashMap<String,Vertex>( );
+    
+    //-------------------define helper function to the edge----------------------
+    
+    public PriorityQueue<refEdge> edgePool = new PriorityQueue<refEdge>();
+    
+    
+    
+    //------------------------------end------------------------------------------
 
     /**
      * Add a new edge to the graph.
@@ -180,6 +194,10 @@ public class Graph
         Vertex v = getVertex( sourceName );
         Vertex w = getVertex( destName );
         v.adj.add( new Edge( w, cost ) );
+        //----------------make a refEdge and put it in the edgePool-----------------
+        refEdge rE = new refEdge(v, w, cost);
+        edgePool.add(rE);
+        //------------------------------end-----------------------------------------
     }
 
     /**
@@ -361,12 +379,15 @@ public class Graph
     /**
      * Prim algorithm.
      */
-    public void prim(String startName){
+    public void prim(String startName, Graph inputGraph){
     	Queue<Vertex> q = new LinkedList<Vertex>();
     	LinkedList<Vertex> explored = new LinkedList<Vertex>();
-    	LinkedList<Vertex> tree = new LinkedList<Vertex>();
     	
-    	PriorityQueue<Edge> children = new PriorityQueue<Edge>();
+    	LinkedList<refEdge> primTree = new LinkedList<refEdge>();
+    	LinkedList<String> nodeContainer = new LinkedList<String>();
+    	Stack<String> bookKeeper = new Stack<String>();
+    	
+    
     	
     	
     	Vertex start = vertexMap.get(startName);
@@ -391,17 +412,20 @@ public class Graph
     		}
     	}
     	
-    	LinkedList<Vertex> exploredStart = new LinkedList<Vertex>();
-    	LinkedList<Vertex> exploredDest = new LinkedList<Vertex>();
-    	PriorityQueue<refEdge> refEdgeContainer = new PriorityQueue<refEdge>();
+    	
  
     	Iterator it = explored.iterator();
     	while(it.hasNext()){
     		Vertex node = (Vertex)it.next();
     		
-    		System.out.println(node.name);
     		
+    		System.out.println(node.name);
+    		nodeContainer.add(node.name);
+    		
+    		
+    		/*
     		for(Edge e: node.adj){
+    			System.out.println(node.name + " " + e.dest.name);
     			if((!exploredStart.contains(node) && !exploredDest.contains(e.dest)) ||
     					(!exploredStart.contains(e.dest) && !exploredDest.contains(node))){
     				refEdge refedge = new refEdge(node, e.dest, e.cost);
@@ -411,36 +435,57 @@ public class Graph
     			}
     			
     		}
+    		*/
     		
     		
     	}
     	
     	System.out.println("There are edges:         ");
-    	Iterator<refEdge> refEdgeIterator = refEdgeContainer.iterator();
+    	Iterator<refEdge> refEdgeIterator = inputGraph.edgePool.iterator();
     	
     	while(refEdgeIterator.hasNext()){
     		refEdge ref = (refEdge)refEdgeIterator.next();
     		System.out.println(ref.getStart().name + "-" + ref.getEnd().name + ":" + ref.getCost());
     	}
     	
-    	
-    	//LinkedList<Vertex> exploredV = new LinkedList<Vertex>();
-    	
-    	
-    	
-    	Vertex s = explored.getFirst();
-    	tree.add(s);
-    	
-    	while(!explored.isEmpty()){
-    		
-    		
-    		
+    	/*
+    	while(!inputGraph.edgePool.isEmpty()){
+    		System.out.print(((refEdge)inputGraph.edgePool.poll()).getCost() + " ");
     	}
-    	Vertex minCost = getMinCostNeighbor(s);
+    	*/
+    		
     	
-    	if(!tree.contains(minCost)){
-    		tree.add(minCost);
+    	
+    	System.out.println("---------------------------------------------------");
+    	
+    	Object[] sortListEdges = inputGraph.edgePool.toArray();
+    	Arrays.sort(sortListEdges);
+    	
+    	for(int i = 0; i < sortListEdges.length; i++){
+    		System.out.println(((refEdge)sortListEdges[i]).getStart().name + "-" + ((refEdge)sortListEdges[i]).getEnd().name + ":" + ((refEdge)sortListEdges[i]).getCost());
     	}
+    	
+    	
+    	
+    	refEdge popRefEdge = inputGraph.edgePool.poll();
+    	String node1 = popRefEdge.getStart().name;
+    	String node2 = popRefEdge.getEnd().name;
+    	bookKeeper.add(node1);
+    	bookKeeper.add(node2);
+    	primTree.add(popRefEdge);
+    	
+    	
+    	
+    	while(bookKeeper.size() != nodeContainer.size()){
+    		for(int i = 0; i < inputGraph.edgePool.size(); i++){
+    			
+    		}
+    	}
+    	
+    	
+    	
+    	
+    	
     	
     }
     
@@ -591,7 +636,7 @@ public class Graph
             }
             //----below is for prim's algorithm---------
             else if(alg.endsWith("p"))
-            	g.prim(startName);
+            	g.prim(startName, g);
             //--------------end------------------------- 
             
             //g.printPath( destName );
