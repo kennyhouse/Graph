@@ -108,6 +108,18 @@ class refEdge implements Comparable<refEdge>{
 		}
 	}
 	
+	public boolean equals(Object o){
+		boolean one = this.getStart().equals(((refEdge)o).getStart());
+		boolean two = this.getEnd().equals(((refEdge)o).getEnd());
+		boolean three = this.getCost() == (((refEdge)o).getCost());
+		
+		if(one && two && three)
+			return true;
+		else {
+			return false;
+		}
+	}
+	
 }
 
 // Represents an entry in the priority queue for Dijkstra's algorithm.
@@ -474,14 +486,33 @@ public class Graph
     	bookKeeper.add(node2);
     	primTree.add(popRefEdge);
     	
+    	sortListEdges[0] = null; // take out the first element since edgePool did it
     	
+    	System.out.println("The size of the sortListEdges is: " + sortListEdges.length);
+    	System.out.println("The size of the nodeContainer is: " + nodeContainer.size());
     	
     	while(bookKeeper.size() != nodeContainer.size()){
-    		for(int i = 0; i < inputGraph.edgePool.size(); i++){
-    			
+    		for(int i = 0; i < sortListEdges.length; i++){
+    			if((sortListEdges[i] != null) && 
+    			((refEdge)sortListEdges[i]).getStart().name.equals(bookKeeper.peek())){
+    				refEdge temp = (refEdge) sortListEdges[i];
+    				String nextNode = temp.getEnd().name;
+    				bookKeeper.add(nextNode);
+    				primTree.add(temp);
+    				inputGraph.edgePool.remove(temp);
+    				sortListEdges[i] = null;
+    			}
     		}
     	}
     	
+    	
+    	Iterator<refEdge> treeIter = primTree.iterator();
+    	
+    	System.out.println("The result of prim's algorithm is : ");
+    	while(treeIter.hasNext()){
+    		refEdge tEdge = treeIter.next();
+    		System.out.println(tEdge.getStart().name + tEdge.getEnd().name + " " + tEdge.getCost() );
+    	}
     	
     	
     	
